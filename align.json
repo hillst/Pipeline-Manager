@@ -1,0 +1,80 @@
+{
+    "Index DB":
+    {
+        "path": "bwa",
+        "priority": 4,
+        "arguments":
+            [
+                "index", "/home/shill/alignment/CBSVILTAB.fasta"
+            ]
+    },
+    "Aligning":
+    {
+        "path":"bwa",
+        "priority": 5,
+        "directory": "collapsed_out",
+        "output": "aligned/$DIRECTORY",
+        "arguments":
+            [
+                "aln",
+                "-t", "16",
+                "/home/shill/alignment/CBSVILTAB.fasta", 
+                "collapsed_out/$DIRECTORY"
+            ]
+    },
+    "Converting to SAM":
+    {
+        "path": "bwa",
+        "priority": 6,
+        "directory": "collapsed_out",
+        "output": "aligned/samfiles/$DIRECTORY.sam",
+        "arguments":
+            [
+                "samse",
+                "/home/shill/alignment/CBSVILTAB.fasta",
+                "aligned/$DIRECTORY",
+                "collapsed_out/$DIRECTORY"
+            ]
+    },
+    "Convert to Bam":
+    {
+        "path": "samtools",
+        "priority": 7,
+        "directory": "collapsed_out",
+        "output": "aligned/bamfiles/$DIRECTORY.bam",
+        "arguments":
+            [
+                "view", "-bS",
+                "aligned/samfiles/$DIRECTORY.sam"
+            ]
+    },
+    "Reverse":
+    {
+        "path": "samtools",
+        "priority": 8,
+        "directory": "aligned",
+        "output": "aligned_split/reverse/$DIRECTORY",
+        "arguments":
+            [
+                "view",
+                "-f", "16",
+                "aligned/bamfiles/$DIRECTORY.bam"
+            ]
+
+    },
+    "Forward":
+    {
+        "path": "samtools",
+        "priority": 9,
+        "directory": "aligned",
+        "output": "aligned_split/forward/$DIRECTORY",
+        "arguments":
+            [
+                "view",
+                "-F", "20",
+                "aligned/bamfiles/$DIRECTORY.bam"
+            ]
+    }
+}
+
+

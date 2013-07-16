@@ -1,0 +1,18 @@
+{
+    {
+        "path": "./alignplot",
+        "priority": 12,
+        "directory" : "aligned",
+        "arguments":
+            [
+                "--input", "plots/forward_$DIRECTORY_21M,plots/forward_$DIRECTORY_22M,plots/forward_$DIRECTORY_23M,plots/forward_$DIRECTORY_24M",
+                "--reverse", "plots/reverse_$DIRECTORY_21M,plots/reverse_$DIRECTORY_22M,plots/reverse_$DIRECTORY_23M,plots/reverse_$DIRECTORY_24M",
+                "--title", "$DIRECTORY",
+                "--output", "plots/$DIRECTORY.pdf", 
+                "--step", "25",
+                "--window", "50"
+            ]
+    }
+}
+
+

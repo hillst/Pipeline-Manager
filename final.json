@@ -1,0 +1,155 @@
+{
+    "demultiplex": {
+        "path": "./demultiplex",
+        "priority": 1,
+        "arguments": [
+        "-f", "/home/milyas/test/raw_data/lane3_NoIndex_L003_R1_001.fastq",
+        "-b", "barcodes",
+        "-k",
+        "-B", "/home/milyas/test/raw_data/lane3_NoIndex_L003_R2_001.fastq",
+        "-e", "barcodes_out"
+        ]
+    },
+     "Adapter Trim": {
+        "path": "/nfs4shares/bioinfosw/installs_current/cutadapt-1.1/bin/cutadapt",
+        "priority": 2,
+        "directory": "barcodes_out",
+        "arguments":
+            [
+                "--adapter", "AGATCGGAAGAGCACACGTCT",   
+                "--minimum-length", "21",
+                "--maximum-length", "24",
+                "-o", "adapters_out/$DIRECTORY",
+                "barcodes_out/$DIRECTORY"
+            ]
+    },
+    "fastx_collapser": 
+    {   
+        "path": "fastx_collapser",
+        "priority": 3,
+        "directory": "adapters_out",
+        "arguments":
+            [
+                "-Q33",
+                "-i", "adapters_out/$DIRECTORY",
+                "-o", "collapsed_out/$DIRECTORY"
+            ]
+    },
+    "Index DB":
+    {
+        "path": "bwa",
+        "priority": 4,
+        "arguments":
+            [
+                "index", "/home/shill/alignment/CBSVILTAB.fasta"
+            ]
+    },
+    "Aligning":
+    {
+        "path":"bwa",
+        "priority": 5,
+        "directory": "collapsed_out",
+        "output": "aligned/$DIRECTORY",
+        "arguments":
+            [
+                "aln",
+                "-t", "16",
+                "/home/shill/alignment/CBSVILTAB.fasta", 
+                "collapsed_out/$DIRECTORY"
+            ]
+    },
+    "Converting to SAM":
+    {
+        "path": "bwa",
+        "priority": 6,
+        "directory": "collapsed_out",
+        "output": "aligned/samfiles/$DIRECTORY.sam",
+        "arguments":
+            [
+                "samse",
+                "/home/shill/alignment/CBSVILTAB.fasta",
+                "aligned/$DIRECTORY",
+                "collapsed_out/$DIRECTORY"
+            ]
+    },
+    "Convert to Bam":
+    {
+        "path": "samtools",
+        "priority": 7,
+        "directory": "collapsed_out",
+        "output": "aligned/bamfiles/$DIRECTORY.bam",
+        "arguments":
+            [
+                "view", "-bS",
+                "aligned/samfiles/$DIRECTORY.sam"
+            ]
+    },
+    "Reverse":
+    {
+        "path": "samtools",
+        "priority": 8,
+        "directory": "aligned",
+        "output": "aligned_split/reverse/$DIRECTORY",
+        "arguments":
+            [
+                "view",
+                "-f", "16",
+                "aligned/bamfiles/$DIRECTORY.bam"
+            ]
+
+    },
+    "Forward":
+    {
+        "path": "samtools",
+        "priority": 9,
+        "directory": "aligned",
+        "output": "aligned_split/forward/$DIRECTORY",
+        "arguments":
+            [
+                "view",
+                "-F", "20",
+                "aligned/bamfiles/$DIRECTORY.bam"
+            ]
+    },
+    "Make Plotfiles forward":{
+        "path": "./aligndepth",
+        "priority" : 10,
+        "directory" : "aligned",
+        "arguments" :    
+
+            [
+                "--input", "aligned_split/forward/$DIRECTORY",
+                "--output", "plots/forward_$DIRECTORY",
+                "--length", "21,22,23,24"
+            ]
+    },
+    "Make Plotfiles reverse":{
+        "path": "./aligndepth",
+        "priority" : 11,
+        "directory" : "aligned",
+        "arguments" :
+            
+            [   
+                "--input", "aligned_split/reverse/$DIRECTORY",
+                "--output", "plots/reverse_$DIRECTORY",
+                "--length", "21,22,23,24"
+            ]
+    },
+    "Plot":
+    {
+        "path": "./alignplot",
+        "priority": 12,
+        "directory" : "aligned",
+        "arguments":
+            [
+                "--input", "plots/forward_$DIRECTORY_21M,plots/forward_$DIRECTORY_22M,plots/forward_$DIRECTORY_23M,plots/forward_$DIRECTORY_24M",
+                "--reverse", "plots/reverse_$DIRECTORY_21M,plots/reverse_$DIRECTORY_22M,plots/reverse_$DIRECTORY_23M,plots/reverse_$DIRECTORY_24M",
+                "--title", "$DIRECTORY",
+                "--output", "plots/$DIRECTORY.pdf", 
+                "--step", "25",
+                "--window", "50"
+            ]
+    }
+}
+
+
