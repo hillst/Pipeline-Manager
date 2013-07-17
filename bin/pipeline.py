@@ -181,6 +181,11 @@ class Pipeline:
                     fd.write(workers.getProcname() + "\n")
                     fd.writelines(workers.getProcess().stdout.readlines())
                     fd.flush()
+            else:
+                with open("pipeline_stats.txt", "a") as fd:
+                    fd.write(workers.getProcname() + "\n")
+                    fd.writelines(workers.getProcess().stderr.readlines())
+                    fd.flush()
             i+=1
             
     
