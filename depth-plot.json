@@ -8,6 +8,7 @@
             [
                 "--input", "aligned_split/forward/$DIRECTORY",
                 "--output", "plots/forward_$DIRECTORY",
+                "--log",
                 "--length", "21,22,23,24"
             ]
     },
@@ -20,6 +21,7 @@
             [   
                 "--input", "aligned_split/reverse/$DIRECTORY",
                 "--output", "plots/reverse_$DIRECTORY",
+                "--log",
                 "--length", "21,22,23,24"
             ]
     },
@@ -35,7 +37,8 @@
                 "--title", "$DIRECTORY",
                 "--output", "plots/$DIRECTORY.pdf", 
                 "--step", "25",
-                "--window", "50"
+                "--window", "50",
+                "--legend"
             ]
     }
 }

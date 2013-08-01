@@ -1,8 +1,9 @@
 {
+    "plotter":
     {
         "path": "./alignplot",
         "priority": 12,
-        "directory" : "aligned",
+        "directory" : "collapsed_out",
         "arguments":
             [
                 "--input", "plots/forward_$DIRECTORY_21M,plots/forward_$DIRECTORY_22M,plots/forward_$DIRECTORY_23M,plots/forward_$DIRECTORY_24M",
@@ -10,7 +11,8 @@
                 "--title", "$DIRECTORY",
                 "--output", "plots/$DIRECTORY.pdf", 
                 "--step", "25",
-                "--window", "50"
+                "--window", "50",
+                "--legend"
             ]
     }
 }

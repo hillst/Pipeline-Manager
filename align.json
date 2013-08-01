@@ -5,7 +5,7 @@
         "priority": 4,
         "arguments":
             [
-                "index", "/home/shill/alignment/CBSVILTAB.fasta"
+                "index", "/home/shill/alignment/ucbsv_iici.fasta"
             ]
     },
     "Aligning":
@@ -18,7 +18,7 @@
             [
                 "aln",
                 "-t", "16",
-                "/home/shill/alignment/CBSVILTAB.fasta", 
+                "/home/shill/alignment/ucbsv_iici.fasta", 
                 "collapsed_out/$DIRECTORY"
             ]
     },
@@ -31,7 +31,7 @@
         "arguments":
             [
                 "samse",
-                "/home/shill/alignment/CBSVILTAB.fasta",
+                "/home/shill/alignment/ucbsv_iici.fasta",
                 "aligned/$DIRECTORY",
                 "collapsed_out/$DIRECTORY"
             ]
