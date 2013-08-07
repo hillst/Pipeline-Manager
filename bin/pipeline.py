@@ -168,7 +168,10 @@ class Pipeline:
             if self.verbose == True: 
                 bcolors.printGood("[" + ("=" * (i * 10/len(working)) + ">" + (10 - i * 10/len(working)) * " " )+ "] " \
                                   + workers.getProcname()+": " + str(i) + "/" + str(len(working)))
-                if workers.getOutput() == None: errors = workers.getProcess().stderr.readlines()
+                if workers.getOutput() == None: 
+                    errors = workers.getProcess().stderr.readlines()
+                else:
+                    errors = []
                 if len(errors) > 0:
                     bcolors.printFail("Errors in program: " + workers.getProcname())
                     for line in errors: 
