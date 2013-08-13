@@ -3,10 +3,10 @@
         "path": "./demultiplex",
         "priority": 1,
         "arguments": [
-        "-f", "/home/milyas/test/raw_data/lane3_NoIndex_L003_R1_001.fastq",
-        "-b", "barcodes",
+        "-f", "/home/milyas/test/raw_data/Illumina_3/lane3_NoIndex_L003_R1_003.fastq",
+        "-b", "barcodes_3",
         "-k",
-        "-B", "/home/milyas/test/raw_data/lane3_NoIndex_L003_R2_001.fastq",
+        "-B", "/home/milyas/test/raw_data/Illumina_3/lane3_NoIndex_L003_R2_003.fastq",
         "-e", "barcodes_out",
         "--label"
         ]
@@ -24,10 +24,23 @@
                 "barcodes_out/$DIRECTORY"
             ]
     },
+    "Length Ratio Plots":
+    {
+        "path": "./lengthplot",
+        "priority": 3,
+        "directory": "adapters_out",
+        "argments":
+            [
+                "--fastq", "adapters_out/$DIRECTORY",
+                "--output", "length_plots/$DIRECTORY.pdf"
+                "--title", "$DIRECTORY Read length distribution"
+            ]
+
+    },
     "fastx_collapser": 
     {   
         "path": "fastx_collapser",
-        "priority": 3,
+        "priority": 4,
         "directory": "adapters_out",
         "arguments":
             [
@@ -39,7 +52,7 @@
     "Index DB":
     {
         "path": "bwa",
-        "priority": 4,
+        "priority": 5,
         "arguments":
             [
                 "index",
@@ -49,7 +62,7 @@
     "Aligning":
     {
         "path":"bwa",
-        "priority": 5,
+        "priority": 6,
         "directory": "collapsed_out",
         "output": "aligned/$DIRECTORY",
         "arguments":
@@ -63,7 +76,7 @@
     "Converting to SAM":
     {
         "path": "bwa",
-        "priority": 6,
+        "priority": 7,
         "directory": "collapsed_out",
         "output": "aligned/samfiles/$DIRECTORY.sam",
         "arguments":
@@ -77,7 +90,7 @@
     "Convert to Bam":
     {
         "path": "samtools",
-        "priority": 7,
+        "priority": 8,
         "directory": "collapsed_out",
         "output": "aligned/bamfiles/$DIRECTORY.bam",
         "arguments":
@@ -89,7 +102,7 @@
     "Reverse":
     {
         "path": "samtools",
-        "priority": 8,
+        "priority": 9,
         "directory": "aligned",
         "output": "aligned_split/reverse/$DIRECTORY",
         "arguments":
@@ -103,7 +116,7 @@
     "Forward":
     {
         "path": "samtools",
-        "priority": 9,
+        "priority": 10,
         "directory": "aligned",
         "output": "aligned_split/forward/$DIRECTORY",
         "arguments":
@@ -115,34 +128,32 @@
     },
     "Make Plotfiles forward":{
         "path": "./aligndepth",
-        "priority" : 10,
+        "priority" : 11,
         "directory" : "aligned",
         "arguments" :    
 
             [
                 "--input", "aligned_split/forward/$DIRECTORY",
                 "--output", "plots/forward_$DIRECTORY",
-                "--length", "21,22,23,24",
-                "--log"
+                "--length", "21,22,23,24"
             ]
     },
     "Make Plotfiles reverse":{
         "path": "./aligndepth",
-        "priority" : 11,
+        "priority" : 12,
         "directory" : "aligned",
         "arguments" :
             
             [   
                 "--input", "aligned_split/reverse/$DIRECTORY",
                 "--output", "plots/reverse_$DIRECTORY",
-                "--length", "21,22,23,24",
-                "--log"
+                "--length", "21,22,23,24"
             ]
     },
     "Plot":
     {
         "path": "./alignplot",
-        "priority": 12,
+        "priority": 13,
         "directory" : "aligned",
         "arguments":
             [
@@ -150,8 +161,8 @@
                 "--reverse", "plots/reverse_$DIRECTORY_21M,plots/reverse_$DIRECTORY_22M,plots/reverse_$DIRECTORY_23M,plots/reverse_$DIRECTORY_24M",
                 "--title", "$DIRECTORY",
                 "--output", "plots/$DIRECTORY.pdf", 
-                "--step", "25",
-                "--window", "50",
+                "--step", "1",
+                "--window", "1",
                 "--legend"
             ]
     }

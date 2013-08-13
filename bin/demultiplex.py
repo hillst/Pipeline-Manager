@@ -32,7 +32,7 @@ def printHelp(errorMessage):
     print "-k   --keep      leave the barcodes on the head of the file"
     print "-l   --logging   enables logging"
     print "-e   --experiment <STRING> Experiment name for the data being processesed. The program will create a new folder for the output   *REQUIRED*"
-
+    print "-L   --label              Tells the program that the barcode file has labels associated with each barcode. They should come immediately before the barcode seperated by a space or a tab"
 class DeMultiplexer:
     fasta = None
     inputsize = 0
@@ -42,6 +42,7 @@ class DeMultiplexer:
     descriptors = {}
     logging = False
     nreads = False
+    label = False
     barcodeList = None
     fuzzy = False
     bcfasta = False
@@ -77,6 +78,8 @@ class DeMultiplexer:
                 self.barcodefasta = str(sys.argv[i+1])
             if cur == "-e" or cur == "--experiment":
                 self.experiment = str(sys.argv[i+1])
+            if cur == "-L" or cur == "--label":
+                self.label = True
         if self.fasta == None or self.barcode == None:
             printHelp("Fasta file or Barcode file not provided.")
             sys.exit(-1)
@@ -97,8 +100,17 @@ class DeMultiplexer:
     def ReadFasta(self):
         with open(self.barcode, 'r') as fd:
             self.barcodeList = fd.readlines()
+            self.labels = {}
             i = 0
             for barcode in self.barcodeList:
+                if self.label:
+                    spt = barcode.split()
+                    if len(spt) < 2:
+                        print >> sys.stderr, "--label specified, but no labels in the barcodes file, disabling"
+                        self.label = False
+                        break
+                    self.labels[spt[1]] = spt[0].strip()
+                    barcode = spt[1]
                 self.barcodeList[i] = barcode.strip()
                 i += 1
                 self.barcodeDictionary[barcode.strip()] = []
@@ -136,7 +148,15 @@ class DeMultiplexer:
         with open(self.barcode, 'r') as fd:
             self.barcodeList = fd.readlines()
             i = 0
+            self.labels = {}
             for barcode in self.barcodeList:
+                if self.label:
+                    spt = barcode.split()
+                    if len(spt) < 2:
+                        self.label = False
+                        print >> sys.stderr, "--label specified, but no labels in the barcode file. Disabling."
+                    self.labels[spt[1]] = spt[0].strip()
+                    barcode = spt[1]
                 self.barcodeList[i] = barcode.strip()
                 i += 1
                 self.barcodeDictionary[barcode.strip()] = []
@@ -149,43 +169,49 @@ class DeMultiplexer:
                 bclines = []
                 mmbclen = 0
                 i= 0
+                linenum = 0
                 for lines in fd:
                     readlines.append(lines)
                     bclines.append(fdbc.readline())
-                    if(len(readlines) == 4):
-                        if bclines[0][:38] != readlines[0][:38] and bclines[0][38] \
-                         == 2 and readlines[0][38] == 1:
-                            #self.errorList.append(readlines)
-                            self.stats["badseq"] += 1
-                            barcode = None
-                        else:
-                            barcode = bclines[1].strip()
-                            if self.keepBC == False:
-                                readlines[1] = readlines[1][len(barcode):]
-                                readlines[3] = readlines[3][len(barcode):]
-                            
-                            comp = fd.tell()/float(self.inputsize) * 100
-                            if comp > i:
-                                sys.stderr.write("\r" + ("[" + ("=" * int(comp/10)) +">"+ (" " * (10 - int(comp/10))) + "]"
-                                       + str(int(comp)) +  "% Complete " + str(fd.tell())))
-                                sys.stderr.flush()
-                                i+=1
-
-
-                            if len(barcode) != len(self.barcodeList[0]):
-                                mmbclen += 1
-                            try:
-                                self.barcodeDictionary[barcode]
-                                self.stats["indexed"] += 1
-                            except KeyError:
-                                barcode = None
+                    try:
+                        if(len(readlines) == 4):
+                            if bclines[0][:38] != readlines[0][:38] and bclines[0][38] \
+                             == 2 and readlines[0][38] == 1:
+                                #self.errorList.append(readlines)
                                 self.stats["badseq"] += 1
-                            finally:
-                                self.writeBarcode(barcode, readlines)
-                                bclines = []
-                                readlines = []
+                                barcode = None
+                            else:
+                                barcode = bclines[1].strip()
+                                if self.keepBC == False:
+                                    readlines[1] = readlines[1][len(barcode):]
+                                    readlines[3] = readlines[3][len(barcode):]
+                                comp = fd.tell()/float(self.inputsize) * 100
+                                if comp > i:
+                                    sys.stderr.write("\r" + ("[" + ("=" * int(comp/10)) +">"+ (" " * (10 - int(comp/10))) + "]"
+                                        + str(int(comp)) +  "% Complete " + str(fd.tell())))
+                                    sys.stderr.flush()
+                                    i+=1
+                                if len(barcode) != len(self.barcodeList[0]):
+                                    mmbclen += 1
+                                try:
+                                    self.barcodeDictionary[barcode]
+                                    self.stats["indexed"] += 1
+                                except KeyError:
+                                    barcode = None
+                                    self.stats["badseq"] += 1
+                                finally:
+                                    self.writeBarcode(barcode, readlines)
+                                    bclines = []
+                                    readlines = []
+                                count = 0
+                            count +=1
+                        linenum+=1
+                    except Exception as e:
+                        print >> sys.stderr, "Error found in line", linenum
+                        print >> sys.stderr, e
+                        readlines = []
+                        bclines = []
                         count = 0
-                    count +=1
         #cleans up
         print >> sys.stderr, "\r" + " " * 40,
         print >> sys.stderr, "\r" +  "[==========>]100% Complete"
@@ -210,12 +236,12 @@ class DeMultiplexer:
             t.start()
         self.todo.join() #block until finished
         for barcode, lines in self.barcodeDictionary.iteritems():
-            with open(self.experiment + "/" + self.experiment +"_bc"+ barcode +".fq", 'wa') as fd:
+            with open(self.experiment + "/" + barcode +".fq", 'wa') as fd:
                 final = []
                 for indicies in self.barcodeDictionary[barcode]:
                     fd.writelines(self.fastaLines[indicies:indicies+4])
                 self.barcodeDictionary[barcode] = []
-        with open(self.experiment + "/"+ self.experiment  +"noindex.fq", 'wa') as fd:
+        with open(self.experiment + "/"+"noindex.fq", 'wa') as fd:
             for indicies in self.errorList:
                 fd.writelines(self.fastaLines[indicies:indicies+4])
         #move to thread handlers, each get own file
@@ -274,7 +300,11 @@ class DeMultiplexer:
 
     def openDescriptors(self):
         for barcode in self.barcodeList:
-            self.descriptors[barcode] = open(self.experiment + "/" + self.experiment +"_bc"+ barcode +".fq", 'w')
+            if self.label:
+                label = self.labels[barcode]
+            else:
+                label = barcode
+            self.descriptors[barcode] = open(self.experiment + "/" + self.experiment +"_bc"+ label +".fq", 'w')
         self.descriptors["noindex"] = open(self.experiment + "/"+ self.experiment  +"noindex.fq", 'wa')
          
     """

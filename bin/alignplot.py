@@ -15,9 +15,10 @@ def main():
     windowsize = 1000
     minimum = 0
     maximum = maxint
-    ymin = -4
-    ymax = 4
+    ymin = None
+    ymax = None
     rev = None
+    legend = False
     if test == True:
         inp = "plottingtest"
         output = "plottingtest.pdf"
@@ -43,11 +44,13 @@ def main():
         if argv[i] in ["-n", "--maximum"]:
             maximum = argv[i+1]
         if argv[i] in ["-y", "--ymin"]:
-            ymin = argv[i+1]
+            (ymin) = int(argv[i+1]) 
         if argv[i] in ["-Y", "--ymax"]:
-            ymax = argv[i+1]
+            (ymax) = int(argv[i+1]) 
         if argv[i] in ["-r", "--reverse"]:
             rev = argv[i+1].split(',')
+        if argv[i] in ["-L", "--legend"]:
+            legend = True
     if inp == None:
         printHelp()
         return
@@ -55,7 +58,7 @@ def main():
         matplotlib.use('agg')
         display = False
     if windowsize != None and rev != None:
-        MakeGraphWindowAvgFR(inp, rev, titlename, stepsize, windowsize, output, display, minimum, maximum, ymin, ymax)
+        MakeGraphWindowAvgFR(inp, rev, titlename, stepsize, windowsize, output, display, minimum, maximum, ymin, ymax, legend)
     elif windowsize != None:
         MakeGraphWindowAvg(inp, titlename, stepsize, windowsize, output, display, minimum, maximum, ymin, ymax)
     else:
@@ -76,11 +79,11 @@ alignplot supports both a single input or a list of inputs. If this is being run
     print "-y    --ymin     <INT>=ymin               Sets the lower bound on the y axis."
     print "-Y    --ymax     <INT>=ymax               Sets the upper bound on the y axis."
     print "-r    --reverse  <FILE,FILE,FILE,FILE>    Input files of the reverse type to be graphed. These should be in CSV format and will be plotted in the negative space."
-
+    print "-L    --legend                            Tells the plotter to use the default 21 bp 22bp 23bp 24bp as the legend"
 def MakeGraph(inp, titlename, numpoints, output, display):
     font = {'family' : 'normal',
             'weight' : 'normal',
-            'size'   : 10}
+            'size'   : 8}
 
     matplotlib.rc('font', **font)
     numpoints = int(numpoints)
@@ -124,10 +127,10 @@ def MakeGraph(inp, titlename, numpoints, output, display):
 expect forward and reverse csv?? both as list associated 1to1?
 fA,fB,fC -r rA,rB,rC????
 """
-def MakeGraphWindowAvgFR(inputf, inputr, titlename, stepsize, windowsize, output, display, minimum, maximum, ymin, ymax):
+def MakeGraphWindowAvgFR(inputf, inputr, titlename, stepsize, windowsize, output, display, minimum, maximum, ymin, ymax,legend):
     font = {'family' : 'normal',
             'weight' : 'normal',
-            'size'   : 10}
+            'size'   : 8}
 
     if len(inputf) != len(inputr):
         raise Exception("Reverse list and Forward list are not of equal length")
@@ -178,9 +181,14 @@ def MakeGraphWindowAvgFR(inputf, inputr, titlename, stepsize, windowsize, output
         #loading midfunction is to dodge the problem of not having the GTK backend
         from matplotlib.pyplot import plot, savefig,title, xlabel, ylabel,legend, axis
         plotlist.append(plot(xpoints, ypoints))
-        legendlist.append(files[:-2])
+        if not legend:
+            legendlist.append(files[:-2])
         colorlist.append(plotlist[-1][0].get_color())
-        
+    if legend:
+        legendlist.append("21 bp")
+        legendlist.append("22 bp")
+        legendlist.append("23 bp")
+        legendlist.append("24 bp")    
     #reverse it so we can use it as a queue..
     colorlist = colorlist[::-1] 
     #Now reverse it
@@ -216,19 +224,22 @@ def MakeGraphWindowAvgFR(inputf, inputr, titlename, stepsize, windowsize, output
                         depthdq.pop()
                         locdq.pop()
         #loading midfunction is to dodge the problem of not having the GTK backend
-        from matplotlib.pyplot import plot, savefig,title, xlabel, ylabel,legend, axis
+        from matplotlib.pyplot import plot, savefig,title, xlabel, ylabel,legend, axis, axhline
+        axhline(linewidth=4, color='y')
+
         plot(xpoints, ypoints, color=colorlist.pop())
         
     if titlename == None:
         title("Align Depth/BP Pos Unmasked Windowed Average")
     else:
         title(titlename + " Windowed Average")
-    if maximum != maxint:
+    if maximum != maxint and ymin!= None and ymax != None:
         axis([minimum,maximum,ymin,ymax])
     else:
         pass
-        x1,x2,y1,y2 = axis()
-        axis([x1,x2,ymin,ymax])
+        if ymin != None and ymax != None:
+            x1,x2,y1,y2 = axis()
+            axis([x1,x2,ymin,ymax])
     ylabel("Alignment Depth (log10)")
     xlabel("BP. Position")
     legend(plotlist,legendlist, loc=2)

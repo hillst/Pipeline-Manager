@@ -8,6 +8,8 @@ def main():
     max = sys.maxint
     length = 0
     lengths = None
+    fastq = False
+    log = False
     for i in range(len(sys.argv)): 
         if sys.argv[i] in ["-i", "--input"]:
             input = sys.argv[i+1]
@@ -21,14 +23,17 @@ def main():
             max = int(sys.argv[i+1])
         if sys.argv[i] in ["-h", "--help"]:
             printHelp()
-        
+        if sys.argv[i] in ["-q", "--fastq"]:
+            fastq = True    
+        if sys.argv[i] in ["-L", "--log"]:
+            log = True
     if output == None or input == None or lengths == None:
         printHelp()
         return    
     if input[0] == 0 or input[1] == 1:
         printHelp()
         return
-    CalculateDepth(input, output, lengths, min, max)
+    CalculateDepth(input, output, lengths, min, max, fastq, log)
     
 """
 Re-designed to take a list of lengths and output them in the manner 21M_output 22M_output ... lengthM_output etc.
@@ -37,10 +42,10 @@ with NNM_ and plot those.
 
 For forward and reverse building of depth files just use your own format to signal forward or reverse, and then plot them.
 """
-def CalculateDepth(input, output, lengths, minimum, maximum):
+def CalculateDepth(input, output, lengths, minimum, maximum, fastq, log):
     """ sample read
     2289-2  16  scaffold01015   4825    37  9M1I10M *   0   0   TGTCAATCCTTACTATGTCT    *   XT:A:U  NM:i:2  X0:i:1  X1:i:0  XM:i:1  XO:i:1  XG:i:1  MD:Z:3A15
-    """
+    """ 
     depthDic = {}
     outputfd = {}
     inputfd = open(input, "r")
@@ -50,10 +55,13 @@ def CalculateDepth(input, output, lengths, minimum, maximum):
         
     for line in inputfd:
         linearr = line.split()
-        repeats = linearr[0].split("-")
-        if len(repeats) != 2:
-            raise Exception("Could not split header")
-        repeats = int(repeats[1]) 
+        if not fastq:
+            repeats = linearr[0].split("-")
+            if len(repeats) != 2:
+                raise Exception("Could not split header")
+            repeats = int(repeats[1]) 
+        else:
+            repeats = 1
         #will throw exception on NaN
         try:
             curlen = int(linearr[5][:-1])
@@ -70,11 +78,12 @@ def CalculateDepth(input, output, lengths, minimum, maximum):
                     depthDic[curlen][i + pos] += 1 * repeats
                 except KeyError:
                     depthDic[curlen][i + pos] = 0
-                    depthDic[curlen][i + pos] += 1 * repeats
+                    depthDic[curlen][i + pos] += 1 * repeats  
     for leng in depthDic:
         for i in sorted(depthDic[leng]):
             if i >= minimum and i <= maximum:
-                outputfd[leng].write(str(i) + "," + str(math.log10(depthDic[leng][i]))+"\n")
+                if not log: outputfd[leng].write(str(i) + "," + str((depthDic[leng][i]))+"\n")
+                else: outputfd[leng].write(str(i) + "," + str(math.log10(depthDic[leng][i]))+"\n")
     inputfd.close()
     for fd in outputfd:
         outputfd[fd].close()
@@ -88,6 +97,7 @@ def printHelp():
     print "-m    --minimum  <INT>=minimum                Beginning section of the genome to look at (default 0)"
     print "-n    --maximum  <INT>=maximum                Ending location of the genome that we will be looking at (default 9*10^19)"
     print "-h    --help                                  Prints this message"
-    
+    print "-L    --log                                   Display the graph with a log scale for the y axis"
+    print "-f    --fastq                                 Process the information in a fastq format (no repeat reads in header)"
 if __name__ == "__main__":
     main()

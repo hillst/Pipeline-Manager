@@ -1,0 +1,15 @@
+{
+    "length_plots":
+     {
+        "priority": 1,
+        "path": "./lengthplot",
+        "directory": "adapters_out",
+        "arguments":
+            [
+                "--fastq", "adapters_out/$DIRECTORY",
+                "--title", "$DIRECTORY Read length distribution",
+                "--output", "length_plots/$DIRECTORY.pdf"
+            ]
+     }
+
+}
