@@ -1,0 +1,13 @@
+{
+    "pcorrelation": {
+        "path": "./pcorrelation",
+        "priority": 1,
+        "arguments": [
+            "-x", "plots/forward_barcodes_out_bcMINGS001.fq_21M",
+            "-y", "plots/forward_barcodes_out_bcMINGS002.fq_21M",
+            "-t", "Pearson Correlation",
+            "-o", "plot.pdf"
+        ]
+    }
+
+}
