@@ -165,7 +165,12 @@
                 "--window", "1",
                 "--legend"
             ]
-    }
+    },
+   "setup plotter" : {
+        "path": "bin/setupcorr.sh",
+        "priority": 14,
+        "arguments": [
+            "/home/milyas/sirna/correlation/ctotal_mings009/correlation_factor"
+        ]
+    } 
 }
-
-
